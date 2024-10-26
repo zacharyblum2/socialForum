@@ -7,11 +7,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/zacharyblum2/socialForum/internal/store"
 )
 
 // `application` struct holds app configurations and settings.
 type application struct {
 	config config // Server configuration settings
+	store store.Storage
 }
 
 // `config` struct holds specific configuration details,
@@ -19,7 +21,14 @@ type application struct {
 type config struct {
 	addr string // Server listen address
 	// rateLimit  // Potential rate limiting setting
-	// dbConfig   // Potential database settings
+	db dbConfig // DB Config
+}
+
+type dbConfig struct { 
+	addr         string // DSN (Data Source Name), the connection string for the database
+	maxOpenConns int    // Maximum number of open (in-use + idle) connections to the database
+	maxIdleConns int    // Maximum number of idle connections in the connection pool
+	maxIdleTime  string // Maximum amount of time an idle connection remains open
 }
 
 // Return http.Handler instead of chi.Mux
@@ -45,6 +54,10 @@ func (app *application) mount() http.Handler {
 	// Create 'group' based on common v1 prefix.
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
+
+		r.Route("/posts", func(r chi.Router) {
+			// r.Post("/post", app.)
+		})
 	})
 
 	// posts
