@@ -1,12 +1,16 @@
 package main
 
-import "log"
+import (
+	"log"
+
+	"github.com/zacharyblum2/socialForum/internal/env"
+)
 
 func main() { 
 	// Initialize configuration settings.
 	// Declared separately to make code cleaner.
 	cfg := config{
-		addr: ":8080",
+		addr: env.GetString("ADDR", ":8080"), // Get address from env
 	}
 
 	// Initialize application with configuration.
