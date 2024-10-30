@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/zacharyblum2/socialForum/internal/db"
 	"github.com/zacharyblum2/socialForum/internal/env"
 	"github.com/zacharyblum2/socialForum/internal/store"
 )
@@ -14,13 +15,13 @@ func main() {
 		// Database connection string with default
 		addr: env.GetString(
 			"DB_ADDR", 
-			"postgres://user:adminpassword@localhost/social?sslmode=disabled"), 
+			"postgres://admin:adminpassword@localhost/socialforum?sslmode=disable"), 
 		// Limit on maximum open database connections
 		maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30), 
 		// Limit on maximum idle database connections
 		maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30), 
 		// Maximum idle time for database connections
-		maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15min"), 
+		maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"), 
 	}
 
 	// Initialize application configuration with server address and database settings.
@@ -31,9 +32,22 @@ func main() {
 		db: dbConfig,
 	}
 
+	db, err := db.New(
+		cfg.db.addr,
+		cfg.db.maxOpenConns,
+		cfg.db.maxIdleConns,
+		cfg.db.maxIdleTime,
+	)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	defer db.Close()
+	log.Print("database connection pool established")
+
 	// Initialize the storage layer (e.g., for database interactions).
 	// The argument `nil` will be replaced with a valid `*sql.DB` instance in a real application.
-	store := store.NewStorage(nil)
+	store := store.NewStorage(db)
 
 	// Create a new `application` instance with the configuration and storage layer.
 	// `app` is the main structure that holds configuration and storage dependencies.
